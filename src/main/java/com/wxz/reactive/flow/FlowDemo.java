@@ -1,4 +1,4 @@
-package com.example.interview.flow;
+package com.wxz.reactive.flow;
 
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
@@ -24,10 +24,13 @@ public class FlowDemo
             // 定义一个订阅者
             Flow.Subscriber<String> subscriber = new Flow.Subscriber<>()
             {
+                private Flow.Subscription subscription;
+
                 @Override
                 public void onSubscribe(Flow.Subscription subscription)
                 {
                     System.out.println(Thread.currentThread() + " 订阅开始了：" + subscription);
+                    this.subscription = subscription;
                     subscription.request(1);
                 }
 
@@ -36,28 +39,31 @@ public class FlowDemo
                 public void onNext(String item)
                 {
                     System.out.println(Thread.currentThread() + " 订阅者接收到数据：" + item);
+                    subscription.request(1);
                 }
 
                 @Override
                 public void onError(Throwable throwable)
                 {
                     System.out.println(Thread.currentThread() + " 订阅者接收到错误信号：" + throwable);
+                    subscription.request(1);
                 }
 
                 @Override
                 public void onComplete()
                 {
                     System.out.println(Thread.currentThread() + " 订阅者接收到完成信号");
+                    subscription.request(1);
                 }
             };
+
+            publisher.subscribe(subscriber);
 
             // 发布 10 条数据
             for (int i = 0; i < 10; i++)
             {
                 publisher.submit("p-" + i);
             }
-
-            publisher.subscribe(subscriber);
         }
     }
 }
